@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 const HTTP_PORT = process.env.PORT || 8080;
@@ -8,7 +7,7 @@ const userService = require("./user-service.js");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const passportJWT = require("passport-jwt");
-
+const cors = require("cors");
 let ExtractJwt = passportJWT.ExtractJwt;
 let JwtStrategy = passportJWT.Strategy;
 
@@ -24,8 +23,6 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
     next(null, {
       _id: jwt_payload._id,
       userName: jwt_payload.userName,
-      fullName: jwt_payload.fullName,
-      role: jwt_payload.role,
     });
   } else {
     next(null, false);
@@ -34,7 +31,6 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
 
 passport.use(strategy);
 app.use(passport.initialize());
-
 app.use(express.json());
 app.use(cors());
 
