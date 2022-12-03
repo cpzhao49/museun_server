@@ -1,20 +1,22 @@
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
-const HTTP_PORT = process.env.PORT || 8080;
 const userService = require("./user-service.js");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const passportJWT = require("passport-jwt");
-const cors = require("cors");
+
+const HTTP_PORT = process.env.PORT || 8080;
+
 let ExtractJwt = passportJWT.ExtractJwt;
 let JwtStrategy = passportJWT.Strategy;
 
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderWithScheme("jwt");
 
-jwtOptions.secretOrKey = process.env.JWT_KEY;
+jwtOptions.secretOrKey = process.env.JWT_SECRET;
 
 let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
   console.log("payload received", jwt_payload);
@@ -30,7 +32,9 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
 });
 
 passport.use(strategy);
+
 app.use(passport.initialize());
+
 app.use(express.json());
 app.use(cors());
 
@@ -49,14 +53,13 @@ app.post("/api/user/login", (req, res) => {
   userService
     .checkUser(req.body)
     .then((user) => {
-      const payload = {
+      let payload = {
         _id: user._id,
         userName: user.userName,
       };
 
       let token = jwt.sign(payload, jwtOptions.secretOrKey);
-
-      res.json({ message: "user logged in", token: token });
+      res.json({ message: "login successful", token: token });
     })
     .catch((msg) => {
       res.status(422).json({ message: msg });
